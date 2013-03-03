@@ -1118,6 +1118,7 @@ static void mlme_event_disconnect(struct wpa_driver_nl80211_data *drv,
 {
 	union wpa_event_data data;
 
+//	wpa_printf(MSG_DEBUG, "nl80211: mlme_event_disconnect %d",nla_get_u16(reason));
 	if (drv->capa.flags & WPA_DRIVER_FLAGS_SME) {
 		/*
 		 * Avoid reporting two disassociation events that could
@@ -1364,6 +1365,8 @@ static void mlme_event_unprot_disconnect(struct wpa_driver_nl80211_data *drv,
 	union wpa_event_data event;
 	u16 reason_code = 0;
 
+        wpa_printf(MSG_DEBUG, "nl80211: mlme_event_unprot_disconnect %d", type);
+
 	if (len < 24)
 		return;
 
@@ -1373,6 +1376,13 @@ static void mlme_event_unprot_disconnect(struct wpa_driver_nl80211_data *drv,
 	/* Note: Same offset for Reason Code in both frame subtypes */
 	if (len >= 24 + sizeof(mgmt->u.deauth))
 		reason_code = le_to_host16(mgmt->u.deauth.reason_code);
+
+	wpa_printf(MSG_DEBUG, "nl80211: mlme_event_unprot_disconnect reason %d", reason_code);
+
+        if (reason_code == WLAN_REASON_DISASSOC_LOW_ACK)
+                        wpa_msg(drv->ctx, MSG_INFO,
+                                WPA_EVENT_DRIVER_STATE "HANGED");
+
 
 	if (type == EVENT_UNPROT_DISASSOC) {
 		event.unprot_disassoc.sa = mgmt->sa;
